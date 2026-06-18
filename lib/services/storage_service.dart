@@ -1,0 +1,36 @@
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../models/task.dart';
+
+class StorageService {
+  static const String _tasksKey = 'tide_tasks_key';
+
+  // Load tasks from SharedPreferences
+  Future<List<Task>> loadTasks() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? tasksJson = prefs.getString(_tasksKey);
+      if (tasksJson == null || tasksJson.isEmpty) {
+        return [];
+      }
+      
+      final List<dynamic> decodedList = json.decode(tasksJson);
+      return decodedList.map((item) => Task.fromMap(item)).toList();
+    } catch (e) {
+      print('Error loading tasks: $e');
+      return [];
+    }
+  }
+
+  // Save tasks to SharedPreferences
+  Future<void> saveTasks(List<Task> tasks) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final List<Map<String, dynamic>> mapList = tasks.map((t) => t.toMap()).toList();
+      final String encodedJson = json.encode(mapList);
+      await prefs.setString(_tasksKey, encodedJson);
+    } catch (e) {
+      print('Error saving tasks: $e');
+    }
+  }
+}
