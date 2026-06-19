@@ -53,7 +53,14 @@ class TaskDetailView extends StatelessWidget {
     
     // Find current task in provider list (to reflect updates in real-time)
     final currentTaskIndex = taskProvider.tasks.indexWhere((t) => t.id == task.id);
-    final currentTask = currentTaskIndex != -1 ? taskProvider.tasks[currentTaskIndex] : task;
+    if (currentTaskIndex == -1) {
+      // Task was deleted externally — pop back to dashboard safely
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) Navigator.of(context).pop();
+      });
+      return const Scaffold(body: Center(child: CircularProgressIndicator(color: AppTheme.goldPrimary)));
+    }
+    final currentTask = taskProvider.tasks[currentTaskIndex];
     
     final isOverdue = currentTask.dueDate.isBefore(DateTime.now()) && !currentTask.isCompleted;
 

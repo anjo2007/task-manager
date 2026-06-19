@@ -12,6 +12,10 @@ class TaskProvider with ChangeNotifier {
   String _sortBy = 'Due Date'; // 'Due Date', 'Priority', 'Created Date'
   String _filterStatus = 'All'; // 'All', 'Pending', 'Completed'
 
+  // Cache for filtered/sorted tasks
+  List<Task>? _cachedFilteredTasks;
+  bool _isDirty = true;
+
   List<Task> get tasks => _tasks;
   bool get isLoading => _isLoading;
   String get searchQuery => _searchQuery;
@@ -22,17 +26,32 @@ class TaskProvider with ChangeNotifier {
   // Categories list
   final List<String> categories = ['All', 'Personal', 'Work', 'Wellness', 'Shopping', 'Ideas'];
 
+  // Auto-load tasks on creation
+  TaskProvider() {
+    fetchTasks();
+  }
+
   // Initialize and load tasks
   Future<void> fetchTasks() async {
     _isLoading = true;
     notifyListeners();
     _tasks = await _storageService.loadTasks();
     _isLoading = false;
+    _invalidateCache();
     notifyListeners();
   }
 
-  // Filtered and sorted tasks
+  void _invalidateCache() {
+    _isDirty = true;
+    _cachedFilteredTasks = null;
+  }
+
+  // Filtered and sorted tasks (cached)
   List<Task> get filteredAndSortedTasks {
+    if (!_isDirty && _cachedFilteredTasks != null) {
+      return _cachedFilteredTasks!;
+    }
+
     List<Task> filtered = List.from(_tasks);
 
     // Apply Status Filter
@@ -71,12 +90,24 @@ class TaskProvider with ChangeNotifier {
       filtered.sort((a, b) => b.createdAt.compareTo(a.createdAt)); // Newest first
     }
 
+    _cachedFilteredTasks = filtered;
+    _isDirty = false;
     return filtered;
   }
 
   // Add Task
   Future<void> addTask(Task task) async {
     _tasks.add(task);
+    _invalidateCache();
+    notifyListeners();
+    await _storageService.saveTasks(_tasks);
+  }
+
+  // Insert task at specific position (for undo delete)
+  Future<void> insertTask(Task task, int position) async {
+    final clampedPos = position.clamp(0, _tasks.length);
+    _tasks.insert(clampedPos, task);
+    _invalidateCache();
     notifyListeners();
     await _storageService.saveTasks(_tasks);
   }
@@ -86,16 +117,22 @@ class TaskProvider with ChangeNotifier {
     final index = _tasks.indexWhere((task) => task.id == updatedTask.id);
     if (index != -1) {
       _tasks[index] = updatedTask;
+      _invalidateCache();
       notifyListeners();
       await _storageService.saveTasks(_tasks);
     }
   }
 
-  // Delete Task
-  Future<void> deleteTask(String id) async {
-    _tasks.removeWhere((task) => task.id == id);
-    notifyListeners();
-    await _storageService.saveTasks(_tasks);
+  // Delete Task — returns the index for undo support
+  Future<int> deleteTask(String id) async {
+    final index = _tasks.indexWhere((task) => task.id == id);
+    if (index != -1) {
+      _tasks.removeAt(index);
+      _invalidateCache();
+      notifyListeners();
+      await _storageService.saveTasks(_tasks);
+    }
+    return index;
   }
 
   // Toggle Task Completion
@@ -103,29 +140,40 @@ class TaskProvider with ChangeNotifier {
     final index = _tasks.indexWhere((task) => task.id == id);
     if (index != -1) {
       _tasks[index] = _tasks[index].copyWith(isCompleted: !_tasks[index].isCompleted);
+      _invalidateCache();
       notifyListeners();
       await _storageService.saveTasks(_tasks);
     }
   }
 
+  // Get task count for a given category (for badge display)
+  int getTaskCountForCategory(String category) {
+    if (category == 'All') return _tasks.length;
+    return _tasks.where((t) => t.category.toLowerCase() == category.toLowerCase()).length;
+  }
+
   // Setters for filters and sorting
   void setSearchQuery(String query) {
     _searchQuery = query;
+    _invalidateCache();
     notifyListeners();
   }
 
   void setSelectedCategory(String category) {
     _selectedCategory = category;
+    _invalidateCache();
     notifyListeners();
   }
 
   void setSortBy(String sortByOption) {
     _sortBy = sortByOption;
+    _invalidateCache();
     notifyListeners();
   }
 
   void setFilterStatus(String status) {
     _filterStatus = status;
+    _invalidateCache();
     notifyListeners();
   }
 }

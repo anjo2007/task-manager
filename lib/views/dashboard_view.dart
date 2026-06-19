@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -20,18 +21,24 @@ class _DashboardViewState extends State<DashboardView> {
   DateTime _selectedDateFilter = DateTime.now();
   bool _filterByDate = false;
 
+  // Cached week dates — computed once per session, not every build
+  late final List<DateTime> _weekDates;
+
+  // Debounce timer for search
+  Timer? _searchDebounce;
+
   @override
   void initState() {
     super.initState();
-    // Fetch tasks after the frame is built
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<TaskProvider>(context, listen: false).fetchTasks();
-    });
+    // Cache week dates from today + 6 days
+    final now = DateTime.now();
+    _weekDates = List.generate(7, (index) => now.add(Duration(days: index)));
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _searchDebounce?.cancel();
     super.dispose();
   }
 
@@ -46,15 +53,22 @@ class _DashboardViewState extends State<DashboardView> {
     }
   }
 
+  void _onSearchChanged(String val) {
+    // Trigger setState immediately for the clear button visibility
+    setState(() {});
+    // Debounce the actual provider update
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 300), () {
+      if (mounted) {
+        Provider.of<TaskProvider>(context, listen: false).setSearchQuery(val);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final taskProvider = Provider.of<TaskProvider>(context);
     final theme = Theme.of(context);
-    
-    // Date timeline for current week (today and next 6 days)
-    final List<DateTime> weekDates = List.generate(7, (index) {
-      return DateTime.now().add(Duration(days: index));
-    });
 
     // Filter tasks if timeline date is selected
     List<Task> tasksToShow = taskProvider.filteredAndSortedTasks;
@@ -66,7 +80,7 @@ class _DashboardViewState extends State<DashboardView> {
       }).toList();
     }
 
-    // Calculations for stats
+    // Calculations for stats — guarded against NaN
     final totalTasks = taskProvider.tasks.length;
     final completedTasks = taskProvider.tasks.where((t) => t.isCompleted).length;
     final completionRate = totalTasks > 0 ? completedTasks / totalTasks : 0.0;
@@ -181,7 +195,7 @@ class _DashboardViewState extends State<DashboardView> {
                                   AnimatedContainer(
                                     duration: const Duration(milliseconds: 600),
                                     height: 8,
-                                    width: MediaQuery.of(context).size.width * 0.45 * (completionRate.isNaN ? 0 : completionRate),
+                                    width: MediaQuery.of(context).size.width * 0.45 * completionRate,
                                     decoration: BoxDecoration(
                                       color: Colors.white,
                                       borderRadius: BorderRadius.circular(4),
@@ -242,7 +256,7 @@ class _DashboardViewState extends State<DashboardView> {
                           ),
                           child: TextField(
                             controller: _searchController,
-                            onChanged: (val) => taskProvider.setSearchQuery(val),
+                            onChanged: _onSearchChanged,
                             decoration: InputDecoration(
                               hintText: 'Search tasks, notes...',
                               prefixIcon: const Icon(Icons.search_rounded, color: AppTheme.goldPrimary),
@@ -251,7 +265,9 @@ class _DashboardViewState extends State<DashboardView> {
                                       icon: const Icon(Icons.clear, size: 18),
                                       onPressed: () {
                                         _searchController.clear();
-                                        taskProvider.setSearchQuery('');
+                                        _searchDebounce?.cancel();
+                                        Provider.of<TaskProvider>(context, listen: false).setSearchQuery('');
+                                        setState(() {});
                                       },
                                     )
                                   : null,
@@ -306,7 +322,7 @@ class _DashboardViewState extends State<DashboardView> {
                 ),
               ),
 
-              // 4. Horizontal Category Filter Strip
+              // 4. Horizontal Category Filter Strip (with task count badges)
               SliverToBoxAdapter(
                 child: SizedBox(
                   height: 60,
@@ -317,6 +333,7 @@ class _DashboardViewState extends State<DashboardView> {
                     itemBuilder: (context, index) {
                       final cat = taskProvider.categories[index];
                       final isSelected = taskProvider.selectedCategory == cat;
+                      final count = taskProvider.getTaskCountForCategory(cat);
                       return Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8.0),
                         child: GestureDetector(
@@ -353,6 +370,24 @@ class _DashboardViewState extends State<DashboardView> {
                                     fontSize: 14,
                                   ),
                                 ),
+                                if (count > 0) ...[
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: isSelected ? Colors.white.withValues(alpha: 0.25) : AppTheme.goldLight,
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Text(
+                                      '$count',
+                                      style: TextStyle(
+                                        color: isSelected ? Colors.white : AppTheme.goldPrimary,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ],
                             ),
                           ),
@@ -404,10 +439,10 @@ class _DashboardViewState extends State<DashboardView> {
                       height: 85,
                       child: ListView.builder(
                         scrollDirection: Axis.horizontal,
-                        itemCount: weekDates.length,
+                        itemCount: _weekDates.length,
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         itemBuilder: (context, index) {
-                          final date = weekDates[index];
+                          final date = _weekDates[index];
                           final isToday = DateFormat('yMd').format(date) == DateFormat('yMd').format(DateTime.now());
                           final isSelected = _filterByDate &&
                               date.year == _selectedDateFilter.year &&
@@ -494,7 +529,7 @@ class _DashboardViewState extends State<DashboardView> {
                                 children: [
                                   Container(
                                     padding: const EdgeInsets.all(28),
-                                    decoration: BoxDecoration(
+                                    decoration: const BoxDecoration(
                                       color: AppTheme.goldLight,
                                       shape: BoxShape.circle,
                                     ),
@@ -567,8 +602,9 @@ class _DashboardViewState extends State<DashboardView> {
                                       ),
                                     );
                                   },
-                                  onDismissed: (direction) {
-                                    taskProvider.deleteTask(task.id);
+                                  onDismissed: (direction) async {
+                                    final deletedIndex = await taskProvider.deleteTask(task.id);
+                                    if (!context.mounted) return;
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text('"${task.title}" deleted'),
@@ -576,15 +612,15 @@ class _DashboardViewState extends State<DashboardView> {
                                           label: 'Undo',
                                           textColor: AppTheme.goldAccent,
                                           onPressed: () {
-                                            taskProvider.addTask(task);
+                                            taskProvider.insertTask(task, deletedIndex);
                                           },
                                         ),
                                       ),
                                     );
                                   },
                                   child: GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
+                                    onTap: () async {
+                                      await Navigator.push(
                                         context,
                                         MaterialPageRoute(
                                           builder: (context) => TaskDetailView(task: task),
@@ -762,8 +798,8 @@ class _DashboardViewState extends State<DashboardView> {
           boxShadow: AppTheme.glowShadow,
         ),
         child: FloatingActionButton(
-          onPressed: () {
-            Navigator.push(
+          onPressed: () async {
+            await Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => const TaskFormView(),
