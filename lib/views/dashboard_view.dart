@@ -133,7 +133,7 @@ class _DashboardViewState extends State<DashboardView> {
                       gradient: LinearGradient(
                         colors: [
                           AppTheme.goldPrimary,
-                          AppTheme.goldAccent.withOpacity(0.85),
+                          AppTheme.goldAccent.withValues(alpha: 0.85),
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
@@ -174,7 +174,7 @@ class _DashboardViewState extends State<DashboardView> {
                                   Container(
                                     height: 8,
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.2),
+                                      color: Colors.white.withValues(alpha: 0.2),
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                   ),
@@ -203,7 +203,7 @@ class _DashboardViewState extends State<DashboardView> {
                               child: CircularProgressIndicator(
                                 value: completionRate,
                                 strokeWidth: 6,
-                                backgroundColor: Colors.white.withOpacity(0.2),
+                                backgroundColor: Colors.white.withValues(alpha: 0.2),
                                 valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                               ),
                             ),
@@ -234,7 +234,7 @@ class _DashboardViewState extends State<DashboardView> {
                           decoration: BoxDecoration(
                             boxShadow: [
                               BoxShadow(
-                                color: AppTheme.goldPrimary.withOpacity(0.04),
+                                color: AppTheme.goldPrimary.withValues(alpha: 0.04),
                                 blurRadius: 16,
                                 offset: const Offset(0, 4),
                               )
@@ -537,7 +537,7 @@ class _DashboardViewState extends State<DashboardView> {
                                     alignment: Alignment.centerRight,
                                     padding: const EdgeInsets.only(right: 24),
                                     decoration: BoxDecoration(
-                                      color: AppTheme.priorityHigh.withOpacity(0.15),
+                                      color: AppTheme.priorityHigh.withValues(alpha: 0.15),
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                     child: const Icon(
@@ -667,7 +667,7 @@ class _DashboardViewState extends State<DashboardView> {
                                                         fontSize: 16,
                                                         fontWeight: FontWeight.bold,
                                                         color: task.isCompleted
-                                                            ? AppTheme.textMuted.withOpacity(0.6)
+                                                            ? AppTheme.textMuted.withValues(alpha: 0.6)
                                                             : AppTheme.textCharcoal,
                                                         decoration: task.isCompleted ? TextDecoration.lineThrough : null,
                                                       ),
@@ -685,7 +685,7 @@ class _DashboardViewState extends State<DashboardView> {
                                                             overflow: TextOverflow.ellipsis,
                                                             style: theme.textTheme.bodyMedium?.copyWith(
                                                               color: task.isCompleted
-                                                                  ? AppTheme.textMuted.withOpacity(0.4)
+                                                                  ? AppTheme.textMuted.withValues(alpha: 0.4)
                                                                   : AppTheme.textMuted,
                                                             ),
                                                           ),
@@ -725,7 +725,7 @@ class _DashboardViewState extends State<DashboardView> {
                                                     color: task.isCompleted ? AppTheme.goldPrimary : Colors.transparent,
                                                     shape: BoxShape.circle,
                                                     border: Border.all(
-                                                      color: task.isCompleted ? AppTheme.goldPrimary : AppTheme.goldPrimary.withOpacity(0.6),
+                                                      color: task.isCompleted ? AppTheme.goldPrimary : AppTheme.goldPrimary.withValues(alpha: 0.6),
                                                       width: 2,
                                                     ),
                                                   ),

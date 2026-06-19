@@ -500,12 +500,12 @@ class _TaskFormViewState extends State<TaskFormView> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.image_outlined, color: AppTheme.textMuted.withOpacity(0.5), size: 28),
+                              Icon(Icons.image_outlined, color: AppTheme.textMuted.withValues(alpha: 0.5), size: 28),
                               const SizedBox(height: 4),
                               Text(
                                 'No photos attached yet',
                                 style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: AppTheme.textMuted.withOpacity(0.7),
+                                  color: AppTheme.textMuted.withValues(alpha: 0.7),
                                   fontSize: 13,
                                 ),
                               ),
@@ -567,7 +567,7 @@ class _TaskFormViewState extends State<TaskFormView> {
                   child: ElevatedButton(
                     onPressed: _saveForm,
                     style: ElevatedButton.styleFrom(
-                      shadowColor: AppTheme.goldPrimary.withOpacity(0.35),
+                      shadowColor: AppTheme.goldPrimary.withValues(alpha: 0.35),
                       elevation: 4,
                     ),
                     child: Text(isEditing ? 'Update Task Plan' : 'Establish Task Plan'),

@@ -30,12 +30,12 @@ class AppTheme {
   // Soft ambient drop shadows
   static List<BoxShadow> premiumShadow = [
     BoxShadow(
-      color: const Color(0xFF9E7E4E).withOpacity(0.06),
+      color: const Color(0xFF9E7E4E).withValues(alpha: 0.06),
       blurRadius: 24,
       offset: const Offset(0, 8),
     ),
     BoxShadow(
-      color: const Color(0xFF9E7E4E).withOpacity(0.03),
+      color: const Color(0xFF9E7E4E).withValues(alpha: 0.03),
       blurRadius: 8,
       offset: const Offset(0, 2),
     )
@@ -43,7 +43,7 @@ class AppTheme {
 
   static List<BoxShadow> glowShadow = [
     BoxShadow(
-      color: goldPrimary.withOpacity(0.25),
+      color: goldPrimary.withValues(alpha: 0.25),
       blurRadius: 20,
       offset: const Offset(0, 8),
     )
@@ -58,7 +58,6 @@ class AppTheme {
         seedColor: goldPrimary,
         primary: goldPrimary,
         secondary: goldAccent,
-        background: creamBg,
         surface: cardWhite,
         onPrimary: Colors.white,
         onSecondary: textCharcoal,
@@ -154,7 +153,7 @@ class AppTheme {
           borderSide: const BorderSide(color: goldPrimary, width: 1.5),
         ),
         hintStyle: GoogleFonts.plusJakartaSans(
-          color: textMuted.withOpacity(0.7),
+          color: textMuted.withValues(alpha: 0.7),
           fontSize: 14,
         ),
         labelStyle: GoogleFonts.outfit(

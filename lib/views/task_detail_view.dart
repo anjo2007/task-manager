@@ -137,7 +137,7 @@ class TaskDetailView extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: AppTheme.goldLight,
                             borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: AppTheme.goldPrimary.withOpacity(0.3)),
+                            border: Border.all(color: AppTheme.goldPrimary.withValues(alpha: 0.3)),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -163,9 +163,9 @@ class TaskDetailView extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: AppTheme.getPriorityColor(currentTask.priority).withOpacity(0.15),
+                            color: AppTheme.getPriorityColor(currentTask.priority).withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: AppTheme.getPriorityColor(currentTask.priority).withOpacity(0.5)),
+                            border: Border.all(color: AppTheme.getPriorityColor(currentTask.priority).withValues(alpha: 0.5)),
                           ),
                           child: Text(
                             '${currentTask.priority.name[0].toUpperCase()}${currentTask.priority.name.substring(1)} Priority',
@@ -184,7 +184,7 @@ class TaskDetailView extends StatelessWidget {
                       currentTask.title,
                       style: theme.textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: currentTask.isCompleted ? AppTheme.textMuted.withOpacity(0.7) : AppTheme.textCharcoal,
+                        color: currentTask.isCompleted ? AppTheme.textMuted.withValues(alpha: 0.7) : AppTheme.textCharcoal,
                         decoration: currentTask.isCompleted ? TextDecoration.lineThrough : null,
                       ),
                     ),
@@ -198,7 +198,7 @@ class TaskDetailView extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                         decoration: BoxDecoration(
-                          color: currentTask.isCompleted ? AppTheme.goldPrimary.withOpacity(0.1) : AppTheme.creamBg,
+                          color: currentTask.isCompleted ? AppTheme.goldPrimary.withValues(alpha: 0.1) : AppTheme.creamBg,
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
                             color: currentTask.isCompleted ? AppTheme.goldPrimary : AppTheme.borderGoldLight,
@@ -246,8 +246,8 @@ class TaskDetailView extends StatelessWidget {
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: isOverdue
-                            ? AppTheme.priorityHigh.withOpacity(0.1)
-                            : (currentTask.isCompleted ? Colors.green.withOpacity(0.1) : AppTheme.goldLight),
+                            ? AppTheme.priorityHigh.withValues(alpha: 0.1)
+                            : (currentTask.isCompleted ? Colors.green.withValues(alpha: 0.1) : AppTheme.goldLight),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(

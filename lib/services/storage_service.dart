@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/task.dart';
 
@@ -17,7 +18,7 @@ class StorageService {
       final List<dynamic> decodedList = json.decode(tasksJson);
       return decodedList.map((item) => Task.fromMap(item)).toList();
     } catch (e) {
-      print('Error loading tasks: $e');
+      debugPrint('Error loading tasks: $e');
       return [];
     }
   }
@@ -30,7 +31,7 @@ class StorageService {
       final String encodedJson = json.encode(mapList);
       await prefs.setString(_tasksKey, encodedJson);
     } catch (e) {
-      print('Error saving tasks: $e');
+      debugPrint('Error saving tasks: $e');
     }
   }
 }
